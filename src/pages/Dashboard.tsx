@@ -12,6 +12,10 @@ function Dashboard() {
     const loadPayments = async () => {
       try {
         const data = await getPayments();
+
+        console.log(data);
+        console.log(Array.isArray(data));
+
         setPayments(data);
       } catch (error) {
         console.error("Failed to load payments:", error);
@@ -22,7 +26,12 @@ function Dashboard() {
   }, []);
   return (
     <Box sx={{ padding: 4 }}>
-      <Typography variant="h4" fontWeight={700}>
+      <Typography
+        variant="h4"
+        sx={{
+          fontWeight: 700,
+        }}
+      >
         Enterprise Payment Dashboard
       </Typography>
 

@@ -13,7 +13,13 @@ function DashboardCard({ title, value }: DashboardCardProps) {
           {title}
         </Typography>
 
-        <Typography variant="h4" fontWeight={700} sx={{ marginTop: 1 }}>
+        <Typography
+          variant="h4"
+          sx={{
+            marginTop: 1,
+            fontWeight: 700,
+          }}
+        >
           {value}
         </Typography>
       </CardContent>
