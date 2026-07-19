@@ -1,75 +1,132 @@
-# React + TypeScript + Vite
+# Enterprise Payment Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern enterprise payment dashboard built with **React**, **TypeScript**, **Material UI**, and **Axios**, consuming a Spring Boot REST API.
 
-Currently, two official plugins are available:
+This project is the frontend for the Enterprise Payment API and demonstrates a production-style architecture using reusable components, a service layer, environment-based configuration, and TypeScript models.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19
+- TypeScript
+- Vite
+- Material UI
+- Axios
+- ESLint
 
-## Expanding the ESLint configuration
+Backend:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Spring Boot
+- Spring Data JPA
+- PostgreSQL
+- Docker
+- Maven
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Architecture
 
 ```
+React Components
+        │
+        ▼
+Service Layer
+        │
+        ▼
+Axios API Client
+        │
+        ▼
+Spring Boot REST API
+        │
+        ▼
+PostgreSQL
+```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Features
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Dashboard summary cards
+- Payment table
+- REST API integration
+- Environment configuration
+- Responsive Material UI layout
+
+---
+
+## Project Structure
 
 ```
+src
+├── api
+├── components
+├── layouts
+├── pages
+├── services
+├── types
+```
+
+---
+
+## Running Locally
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+### Start development server
+
+```bash
+npm run dev
+```
+
+Application:
+
+```
+http://localhost:5173
+```
+
+---
+
+## Environment Variables
+
+Create:
+
+```
+.env.development
+```
+
+Example:
+
+```env
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+---
+
+## Backend Repository
+
+https://github.com/vinit-joshi1989/enterprise-payment-api
+
+---
+
+## Roadmap
+
+- Search payments
+- Filter by status
+- Pagination
+- Create payment
+- Edit payment
+- Delete payment
+- JWT Authentication
+- Dashboard analytics
+- Deployment
+
+---
+
+## Author
+
+**Vinit Joshi**
