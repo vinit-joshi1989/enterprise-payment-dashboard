@@ -12,6 +12,8 @@ import {
   ToggleButtonGroup,
   Typography,
   Button,
+  Alert,
+  Snackbar,
 } from "@mui/material";
 import DashboardCard from "../components/DashboardCard";
 import { getPayments } from "../services/paymentService";
@@ -28,6 +30,11 @@ function Dashboard() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
+    "success",
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -60,6 +67,20 @@ function Dashboard() {
     } catch (error) {
       console.error("Failed to refresh payments:", error);
     }
+  };
+  const handlePaymentCreated = async (errorMessage?: string) => {
+    if (errorMessage) {
+      setSnackbarMessage(errorMessage);
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+      return;
+    }
+
+    await refreshPayments();
+
+    setSnackbarMessage("Payment created successfully.");
+    setSnackbarSeverity("success");
+    setSnackbarOpen(true);
   };
 
   const filteredPayments = payments
@@ -272,8 +293,26 @@ function Dashboard() {
       <CreatePaymentDialog
         open={createDialogOpen}
         onClose={() => setCreateDialogOpen(false)}
-        onCreated={refreshPayments}
+        onCreated={handlePaymentCreated}
       />
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

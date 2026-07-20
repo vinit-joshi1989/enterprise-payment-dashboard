@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 import {
   Alert,
   Button,
@@ -18,7 +19,7 @@ import {
 type CreatePaymentDialogProps = {
   open: boolean;
   onClose: () => void;
-  onCreated: () => void;
+  onCreated: (errorMessage?: string) => void;
 };
 
 const initialForm: CreatePaymentRequest = {
@@ -77,8 +78,23 @@ function CreatePaymentDialog({
       });
       onCreated();
       handleClose();
-    } catch {
-      setError("Failed to create payment. Please try again.");
+    } catch (error) {
+      let errorMessage = "Failed to create payment.";
+
+      if (axios.isAxiosError(error)) {
+        const backendMessage = error.response?.data?.message;
+
+        if (
+          error.response?.status === 409 ||
+          backendMessage?.toLowerCase().includes("transaction reference")
+        ) {
+          errorMessage = "Transaction reference already exists.";
+        } else if (backendMessage) {
+          errorMessage = backendMessage;
+        }
+      }
+
+      onCreated(errorMessage);
     } finally {
       setSubmitting(false);
     }
