@@ -101,7 +101,11 @@ function CreatePaymentDialog({
                 transactionReference: event.target.value,
               })
             }
-            inputProps={{ maxLength: 100 }}
+            slotProps={{
+              htmlInput: {
+                maxLength: 100,
+              },
+            }}
             required
             fullWidth
           />
@@ -128,7 +132,12 @@ function CreatePaymentDialog({
                 amount: Number(event.target.value),
               })
             }
-            inputProps={{ min: 0.01, step: 0.01 }}
+            slotProps={{
+              htmlInput: {
+                min: 0.01,
+                step: 0.01,
+              },
+            }}
             required
             fullWidth
           />
