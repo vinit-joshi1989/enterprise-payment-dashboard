@@ -6,7 +6,10 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  TablePagination,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from "@mui/material";
 import DashboardCard from "../components/DashboardCard";
@@ -18,11 +21,15 @@ function Dashboard() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
   useEffect(() => {
     const loadPayments = async () => {
       try {
         const data = await getPayments();
-
         setPayments(data);
       } catch (error) {
         console.error("Failed to load payments:", error);
@@ -31,19 +38,48 @@ function Dashboard() {
 
     loadPayments();
   }, []);
-  const filteredPayments = payments.filter((payment) => {
-    const matchesSearch =
-      payment.transactionReference
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      payment.customerId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus =
-      statusFilter === "ALL" || payment.status === statusFilter;
+  const filteredPayments = payments
+    .filter((payment) => {
+      const normalizedSearch = searchTerm.trim().toLowerCase();
 
-    return matchesSearch && matchesStatus;
-  });
+      const matchesSearch =
+        payment.transactionReference.toLowerCase().includes(normalizedSearch) ||
+        payment.customerId.toLowerCase().includes(normalizedSearch) ||
+        payment.description.toLowerCase().includes(normalizedSearch);
+
+      const matchesStatus =
+        statusFilter === "ALL" || payment.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    })
+    .sort((firstPayment, secondPayment) => {
+      let comparison = 0;
+
+      if (sortBy === "amount") {
+        comparison = firstPayment.amount - secondPayment.amount;
+      }
+
+      if (sortBy === "createdAt") {
+        comparison =
+          new Date(firstPayment.createdAt).getTime() -
+          new Date(secondPayment.createdAt).getTime();
+      }
+
+      if (sortBy === "transactionReference") {
+        comparison = firstPayment.transactionReference.localeCompare(
+          secondPayment.transactionReference,
+        );
+      }
+
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+  const paginatedPayments = filteredPayments.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage,
+  );
+
   return (
     <Box sx={{ padding: 4 }}>
       <Typography
@@ -58,6 +94,7 @@ function Dashboard() {
       <Typography variant="body1" color="text.secondary" sx={{ mt: 1, mb: 4 }}>
         Monitor and manage payment transactions.
       </Typography>
+
       <Box
         sx={{
           display: "flex",
@@ -70,7 +107,10 @@ function Dashboard() {
           label="Search payments"
           placeholder="Reference, customer, or description"
           value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
+          onChange={(event) => {
+            setSearchTerm(event.target.value);
+            setPage(0);
+          }}
           fullWidth
         />
 
@@ -81,7 +121,10 @@ function Dashboard() {
             labelId="status-filter-label"
             value={statusFilter}
             label="Status"
-            onChange={(event) => setStatusFilter(event.target.value)}
+            onChange={(event) => {
+              setStatusFilter(event.target.value);
+              setPage(0);
+            }}
           >
             <MenuItem value="ALL">All statuses</MenuItem>
             <MenuItem value="COMPLETED">Completed</MenuItem>
@@ -90,6 +133,52 @@ function Dashboard() {
           </Select>
         </FormControl>
       </Box>
+
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 2,
+          mb: 3,
+          flexWrap: "wrap",
+        }}
+      >
+        <FormControl sx={{ minWidth: 220 }}>
+          <InputLabel id="sort-by-label">Sort By</InputLabel>
+
+          <Select
+            labelId="sort-by-label"
+            value={sortBy}
+            label="Sort By"
+            onChange={(event) => {
+              setSortBy(event.target.value);
+              setPage(0);
+            }}
+          >
+            <MenuItem value="createdAt">Created Date</MenuItem>
+            <MenuItem value="amount">Amount</MenuItem>
+            <MenuItem value="transactionReference">
+              Transaction Reference
+            </MenuItem>
+          </Select>
+        </FormControl>
+
+        <ToggleButtonGroup
+          exclusive
+          value={sortDirection}
+          onChange={(_, value) => {
+            if (value !== null) {
+              setSortDirection(value);
+              setPage(0);
+            }
+          }}
+        >
+          <ToggleButton value="desc">Desc</ToggleButton>
+          <ToggleButton value="asc">Asc</ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
+
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 3 }}>
           <DashboardCard title="Total Payments" value={payments.length} />
@@ -125,7 +214,20 @@ function Dashboard() {
       </Grid>
 
       <Box sx={{ mt: 4 }}>
-        <PaymentsTable payments={filteredPayments} />
+        <PaymentsTable payments={paginatedPayments} />
+
+        <TablePagination
+          component="div"
+          count={filteredPayments.length}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          rowsPerPageOptions={[5, 10, 25]}
+          onPageChange={(_, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(event) => {
+            setRowsPerPage(Number(event.target.value));
+            setPage(0);
+          }}
+        />
       </Box>
     </Box>
   );
