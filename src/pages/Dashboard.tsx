@@ -11,11 +11,13 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Typography,
+  Button,
 } from "@mui/material";
 import DashboardCard from "../components/DashboardCard";
 import { getPayments } from "../services/paymentService";
 import type { Payment } from "../types/Payment";
 import PaymentsTable from "../components/PaymentsTable";
+import CreatePaymentDialog from "../components/CreatePaymentDialog";
 
 function Dashboard() {
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -25,19 +27,40 @@ function Dashboard() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   useEffect(() => {
-    const loadPayments = async () => {
+    let cancelled = false;
+
+    const loadInitialPayments = async () => {
       try {
         const data = await getPayments();
-        setPayments(data);
+
+        if (!cancelled) {
+          setPayments(data);
+        }
       } catch (error) {
         console.error("Failed to load payments:", error);
       }
     };
 
-    loadPayments();
+    void loadInitialPayments();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  const refreshPayments = async () => {
+    try {
+      const data = await getPayments();
+
+      setPayments(data);
+      setPage(0);
+    } catch (error) {
+      console.error("Failed to refresh payments:", error);
+    }
+  };
 
   const filteredPayments = payments
     .filter((payment) => {
@@ -82,18 +105,35 @@ function Dashboard() {
 
   return (
     <Box sx={{ padding: 4 }}>
-      <Typography
-        variant="h4"
+      <Box
         sx={{
-          fontWeight: 700,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 4,
+          flexWrap: "wrap",
+          gap: 2,
         }}
       >
-        Enterprise Payment Dashboard
-      </Typography>
+        <Box>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 700,
+            }}
+          >
+            Enterprise Payment Dashboard
+          </Typography>
 
-      <Typography variant="body1" color="text.secondary" sx={{ mt: 1, mb: 4 }}>
-        Monitor and manage payment transactions.
-      </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Monitor and manage payment transactions.
+          </Typography>
+        </Box>
+
+        <Button variant="contained" onClick={() => setCreateDialogOpen(true)}>
+          New Payment
+        </Button>
+      </Box>
 
       <Box
         sx={{
@@ -167,7 +207,7 @@ function Dashboard() {
         <ToggleButtonGroup
           exclusive
           value={sortDirection}
-          onChange={(_, value) => {
+          onChange={(_, value: "asc" | "desc" | null) => {
             if (value !== null) {
               setSortDirection(value);
               setPage(0);
@@ -229,6 +269,11 @@ function Dashboard() {
           }}
         />
       </Box>
+      <CreatePaymentDialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        onCreated={refreshPayments}
+      />
     </Box>
   );
 }

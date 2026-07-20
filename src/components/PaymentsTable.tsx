@@ -41,7 +41,7 @@ function PaymentsTable({ payments }: PaymentsTableProps) {
                 <Chip label={payment.status} size="small" />
               </TableCell>
               <TableCell>
-                {new Date(payment.createdAt).toLocaleDateString()}
+                {new Date(payment.createdAt).toLocaleString()}
               </TableCell>
             </TableRow>
           ))}
