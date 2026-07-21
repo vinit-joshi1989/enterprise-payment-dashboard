@@ -14,12 +14,19 @@ import {
   Button,
   Alert,
   Snackbar,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import DashboardCard from "../components/DashboardCard";
 import { getPayments } from "../services/paymentService";
 import type { Payment } from "../types/Payment";
 import PaymentsTable from "../components/PaymentsTable";
 import CreatePaymentDialog from "../components/CreatePaymentDialog";
+import ChangeStatusDialog from "../components/ChangeStatusDialog";
+import { deletePayment } from "../services/paymentService";
 
 function Dashboard() {
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -35,6 +42,9 @@ function Dashboard() {
   const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
     "success",
   );
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+  const [paymentToDelete, setPaymentToDelete] = useState<Payment | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -82,7 +92,48 @@ function Dashboard() {
     setSnackbarSeverity("success");
     setSnackbarOpen(true);
   };
+  const handleChangeStatus = (payment: Payment) => {
+    setSelectedPayment(payment);
+  };
+  const handlePaymentUpdated = async (errorMessage?: string) => {
+    if (errorMessage) {
+      setSnackbarMessage(errorMessage);
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+      return;
+    }
 
+    await refreshPayments();
+
+    setSelectedPayment(null);
+
+    setSnackbarMessage("Payment status updated successfully.");
+    setSnackbarSeverity("success");
+    setSnackbarOpen(true);
+  };
+  const handleDeletePayment = async () => {
+    if (!paymentToDelete) {
+      return;
+    }
+
+    try {
+      setDeleting(true);
+
+      await deletePayment(paymentToDelete.id);
+      await refreshPayments();
+
+      setPaymentToDelete(null);
+      setSnackbarMessage("Payment deleted successfully.");
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
+    } catch {
+      setSnackbarMessage("Failed to delete payment.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+    } finally {
+      setDeleting(false);
+    }
+  };
   const filteredPayments = payments
     .filter((payment) => {
       const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -275,7 +326,11 @@ function Dashboard() {
       </Grid>
 
       <Box sx={{ mt: 4 }}>
-        <PaymentsTable payments={paginatedPayments} />
+        <PaymentsTable
+          payments={paginatedPayments}
+          onChangeStatus={handleChangeStatus}
+          onDelete={setPaymentToDelete}
+        />
 
         <TablePagination
           component="div"
@@ -295,6 +350,46 @@ function Dashboard() {
         onClose={() => setCreateDialogOpen(false)}
         onCreated={handlePaymentCreated}
       />
+      <ChangeStatusDialog
+        key={selectedPayment?.id ?? "new"}
+        open={selectedPayment !== null}
+        payment={selectedPayment}
+        onClose={() => setSelectedPayment(null)}
+        onUpdated={handlePaymentUpdated}
+      />
+      <Dialog
+        open={paymentToDelete !== null}
+        onClose={() => {
+          if (!deleting) {
+            setPaymentToDelete(null);
+          }
+        }}
+      >
+        <DialogTitle>Delete Payment</DialogTitle>
+
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete payment{" "}
+            <strong>{paymentToDelete?.transactionReference}</strong>? This
+            action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setPaymentToDelete(null)} disabled={deleting}>
+            Cancel
+          </Button>
+
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleDeletePayment}
+            disabled={deleting}
+          >
+            {deleting ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={4000}

@@ -21,3 +21,18 @@ export const createPayment = async (
 
   return response.data;
 };
+
+export const updatePaymentStatus = async (
+  id: string,
+  status: string,
+): Promise<Payment> => {
+  const response = await api.patch<Payment>(`/api/payments/${id}/status`, {
+    status,
+  });
+
+  return response.data;
+};
+
+export const deletePayment = async (id: string): Promise<void> => {
+  await api.delete(`/api/payments/${id}`);
+};

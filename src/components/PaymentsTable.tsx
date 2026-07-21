@@ -7,15 +7,23 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Button,
+  Stack,
 } from "@mui/material";
 
 import type { Payment } from "../types/Payment";
 
 type PaymentsTableProps = {
   payments: Payment[];
+  onChangeStatus: (payment: Payment) => void;
+  onDelete: (payment: Payment) => void;
 };
 
-function PaymentsTable({ payments }: PaymentsTableProps) {
+function PaymentsTable({
+  payments,
+  onChangeStatus,
+  onDelete,
+}: PaymentsTableProps) {
   return (
     <TableContainer component={Paper}>
       <Table>
@@ -26,6 +34,7 @@ function PaymentsTable({ payments }: PaymentsTableProps) {
             <TableCell>Amount</TableCell>
             <TableCell>Status</TableCell>
             <TableCell>Created</TableCell>
+            <TableCell align="center">Actions</TableCell>
           </TableRow>
         </TableHead>
 
@@ -42,6 +51,29 @@ function PaymentsTable({ payments }: PaymentsTableProps) {
               </TableCell>
               <TableCell>
                 {new Date(payment.createdAt).toLocaleString()}
+              </TableCell>
+              <TableCell align="center">
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{ justifyContent: "center" }}
+                >
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => onChangeStatus(payment)}
+                  >
+                    Change Status
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="error"
+                    onClick={() => onDelete(payment)}
+                  >
+                    Delete
+                  </Button>
+                </Stack>
               </TableCell>
             </TableRow>
           ))}
